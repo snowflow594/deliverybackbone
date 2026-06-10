@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: deliverybackbone
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5434}/${DB_NAME:deliverybackbone}
+    username: ${DB_USER:delivery}
+    password: ${DB_PASSWORD:delivery}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate   # el esquema lo gobierna Flyway, nunca Hibernate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+
+  flyway:
+    locations: classpath:db/migration
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
