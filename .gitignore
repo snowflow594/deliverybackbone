@@ -19,3 +19,4 @@ dist/
 # Entorno
 .env
 *.log
+*.stackdump
