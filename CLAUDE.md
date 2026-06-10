@@ -23,7 +23,7 @@ Backend de delivery con inventario concurrente en tiempo real, tracking de couri
 ## Estado
 
 - [x] Fase 0: esqueleto + Docker Compose + migraciones Flyway
-- [ ] Fase 1: inventory + orders, checkout con reservas, LoadSimulator, tests de concurrencia
+- [x] Fase 1: inventory + orders, checkout con reservas, LoadSimulator, tests de concurrencia
 - [ ] Fase 2: WebSocket/STOMP + Redis pub/sub + catálogo React
 - [ ] Fase 3: tracking + CourierSimulator + mapa Leaflet
 - [ ] Fase 4: analytics + dashboards Recharts

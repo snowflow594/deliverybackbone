@@ -40,6 +40,30 @@ cd backend
 ./mvnw test    # requiere Docker (los tests de integración usan Testcontainers)
 ```
 
+Incluye `CheckoutConcurrencyTest`: 50 compradores simultáneos compiten por 10 unidades —
+exactamente 10 compras exitosas, 40 rechazos con 409, cero sobreventa.
+
+## Prueba de carga en vivo
+
+```bash
+cd simulator
+java LoadSimulator.java 200 1 4    # 200 compradores reales vía HTTP contra el producto 4
+```
+
+Ver [simulator/README.md](simulator/README.md).
+
+## API (Fase 1)
+
+```
+CATÁLOGO    GET   /api/products?category=&search=   |  GET /api/products/{id}
+ADMIN       POST  /api/products                     |  PATCH /api/products/{id}/restock
+CHECKOUT    POST  /api/orders/checkout              |  POST  /api/orders/{id}/pay
+PEDIDOS     GET   /api/orders/{id}                  |  GET   /api/orders/my?userId=
+```
+
+El checkout reserva stock con UPDATE condicional (atómico en Postgres); las reservas
+sin pagar expiran a los 10 minutos y un job programado libera el stock.
+
 ## Estructura de módulos
 
 ```
@@ -55,7 +79,7 @@ com.estefano.deliverybackbone
 ## Roadmap
 
 - [x] **Fase 0** — Esqueleto: Docker Compose + Flyway + smoke tests
-- [ ] **Fase 1** — Checkout con reserva de stock + LoadSimulator (prueba de concurrencia)
+- [x] **Fase 1** — Checkout con reserva de stock + LoadSimulator (prueba de concurrencia)
 - [ ] **Fase 2** — Stock en vivo: WebSocket/STOMP + Redis pub/sub + catálogo React
 - [ ] **Fase 3** — Mapa con motorizados en movimiento (Leaflet + CourierSimulator)
 - [ ] **Fase 4** — Dashboards de analítica (Recharts)
