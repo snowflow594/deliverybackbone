@@ -31,7 +31,17 @@ cd backend
 
 # 3. Verificar
 curl http://localhost:8080/actuator/health
+
+# 4. Frontend con stock en vivo (http://localhost:5173)
+cd frontend
+npm install
+npm run dev
 ```
+
+**Demo en vivo:** abre http://localhost:5173 en dos pestañas y compra en una —
+el stock cambia en la otra al instante (checkout → Redis pub/sub → STOMP `/topic/inventory`).
+
+Swagger UI: http://localhost:8080/swagger-ui.html
 
 ## Tests
 
@@ -59,6 +69,7 @@ CATÁLOGO    GET   /api/products?category=&search=   |  GET /api/products/{id}
 ADMIN       POST  /api/products                     |  PATCH /api/products/{id}/restock
 CHECKOUT    POST  /api/orders/checkout              |  POST  /api/orders/{id}/pay
 PEDIDOS     GET   /api/orders/{id}                  |  GET   /api/orders/my?userId=
+WEBSOCKET   /ws (STOMP, fallback SockJS)            →  /topic/inventory
 ```
 
 El checkout reserva stock con UPDATE condicional (atómico en Postgres); las reservas
@@ -80,7 +91,7 @@ com.estefano.deliverybackbone
 
 - [x] **Fase 0** — Esqueleto: Docker Compose + Flyway + smoke tests
 - [x] **Fase 1** — Checkout con reserva de stock + LoadSimulator (prueba de concurrencia)
-- [ ] **Fase 2** — Stock en vivo: WebSocket/STOMP + Redis pub/sub + catálogo React
+- [x] **Fase 2** — Stock en vivo: WebSocket/STOMP + Redis pub/sub + catálogo React
 - [ ] **Fase 3** — Mapa con motorizados en movimiento (Leaflet + CourierSimulator)
 - [ ] **Fase 4** — Dashboards de analítica (Recharts)
 - [ ] **Fase 5** — Deploy + documentación con GIFs

@@ -4,6 +4,7 @@ import com.estefano.deliverybackbone.common.ConflictException;
 import com.estefano.deliverybackbone.common.InsufficientStockException;
 import com.estefano.deliverybackbone.common.NotFoundException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,17 +22,20 @@ public class InventoryService {
     private final StockReservationRepository reservations;
     private final StockMovementRepository movements;
     private final CategoryRepository categories;
+    private final ApplicationEventPublisher events;
     private final long reservationTtlMinutes;
 
     public InventoryService(ProductRepository products,
                             StockReservationRepository reservations,
                             StockMovementRepository movements,
                             CategoryRepository categories,
+                            ApplicationEventPublisher events,
                             @Value("${app.reservation-ttl-minutes:10}") long reservationTtlMinutes) {
         this.products = products;
         this.reservations = reservations;
         this.movements = movements;
         this.categories = categories;
+        this.events = events;
         this.reservationTtlMinutes = reservationTtlMinutes;
     }
 
@@ -53,6 +57,7 @@ public class InventoryService {
         if (products.tryReserve(productId, quantity) == 0) {
             throw new InsufficientStockException(productId, quantity);
         }
+        events.publishEvent(new StockChangedEvent(productId, "RESERVED"));
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -79,6 +84,7 @@ public class InventoryService {
             }
             movements.save(new StockMovement(reservation.getProductId(), -reservation.getQuantity(),
                     StockMovement.Reason.SALE, orderId));
+            events.publishEvent(new StockChangedEvent(reservation.getProductId(), "SOLD"));
         }
     }
 
@@ -95,6 +101,7 @@ public class InventoryService {
                 products.releaseReserved(reservation.getProductId(), reservation.getQuantity());
                 movements.save(new StockMovement(reservation.getProductId(), reservation.getQuantity(),
                         StockMovement.Reason.RESERVATION_EXPIRED, reservation.getId()));
+                events.publishEvent(new StockChangedEvent(reservation.getProductId(), "RELEASED"));
                 affectedOrders.add(reservation.getOrderId());
             }
         }
@@ -120,6 +127,7 @@ public class InventoryService {
             throw new NotFoundException("Producto %d no existe".formatted(productId));
         }
         movements.save(new StockMovement(productId, quantity, StockMovement.Reason.RESTOCK, null));
+        events.publishEvent(new StockChangedEvent(productId, "RESTOCKED"));
         return getProduct(productId);
     }
 }
