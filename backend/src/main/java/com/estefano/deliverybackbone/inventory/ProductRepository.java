@@ -49,12 +49,23 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             nativeQuery = true)
     int addStock(@Param("productId") long productId, @Param("qty") int qty);
 
+    // Sin parámetros null: el patrón "(:p IS NULL OR ...)" rompe en Hibernate 6 + Postgres
+    // (no infiere el tipo del null y lo manda como bytea → "function lower(bytea) does not exist").
     @Query("""
             SELECT p FROM Product p
              WHERE p.active = TRUE
-               AND (:categoryId IS NULL OR p.categoryId = :categoryId)
-               AND (:search IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')))
+               AND LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%'))
              ORDER BY p.name
             """)
-    List<Product> search(@Param("categoryId") Long categoryId, @Param("search") String search);
+    List<Product> searchByName(@Param("search") String search);
+
+    @Query("""
+            SELECT p FROM Product p
+             WHERE p.active = TRUE
+               AND p.categoryId = :categoryId
+               AND LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%'))
+             ORDER BY p.name
+            """)
+    List<Product> searchByCategoryAndName(@Param("categoryId") long categoryId,
+                                          @Param("search") String search);
 }

@@ -26,9 +26,12 @@ export default function App() {
 
   useEffect(() => {
     fetch('/api/products')
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.json()
+      })
       .then(setProducts)
-      .catch(() => setNotice('No se pudo cargar el catálogo. ¿Backend corriendo en :8080?'))
+      .catch((e) => setNotice(`No se pudo cargar el catálogo (${e.message}). ¿Backend corriendo en :8080?`))
   }, [])
 
   const onStockEvent = useCallback((event) => {

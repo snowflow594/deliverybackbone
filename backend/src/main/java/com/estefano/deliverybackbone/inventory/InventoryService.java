@@ -45,7 +45,11 @@ public class InventoryService {
     }
 
     public List<Product> search(Long categoryId, String search) {
-        return products.search(categoryId, search);
+        // Normalizar aquí evita pasar null a JPQL (ver nota en ProductRepository).
+        String term = search == null ? "" : search.trim();
+        return categoryId == null
+                ? products.searchByName(term)
+                : products.searchByCategoryAndName(categoryId, term);
     }
 
     /**
